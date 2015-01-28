@@ -6,7 +6,6 @@ var onHeaders = require('on-headers');
 
 var uglifyjs = require('uglify-js');
 var cssmin = require('cssmin');
-var sass;
 var less;
 var stylus;
 var coffee;
@@ -16,7 +15,6 @@ var memCache = {};
 var TYPE_TEXT = 0;
 var TYPE_JS = 1;
 var TYPE_CSS = 2;
-var TYPE_SASS = 3;
 var TYPE_LESS = 4;
 var TYPE_STYLUS = 5;
 var TYPE_COFFEE = 6;
@@ -49,24 +47,6 @@ function minifyIt(type, options, content, callback) {
                     result = cssmin(content)
                 }
             } catch(err) {
-            }
-            callback(result);
-            break;
-        case TYPE_SASS:
-            if (!sass) {
-                sass = require('node-sass');
-            }
-            var result;
-            try {
-                result = sass.renderSync(content);
-                try {
-                    if (!options.noMinify) {
-                        result = cssmin(result);
-                    }
-                } catch(err) {
-                }
-            } catch(err) {
-                result = precompileError(err, type);
             }
             callback(result);
             break;
@@ -194,7 +174,6 @@ module.exports = function express_minify(options) {
     
     var js_match = options.js_match || /javascript/;
     var css_match = options.css_match || /css/;
-    var sass_match = options.sass_match || /scss/;
     var less_match = options.less_match || /less/;
     var stylus_match = options.stylus_match || /stylus/;
     var coffee_match = options.coffee_match || /coffeescript/;
@@ -247,10 +226,7 @@ module.exports = function express_minify(options) {
                 return;
             }
 
-            if (sass_match.test(contentType)) {
-                type = TYPE_SASS;
-                res.setHeader('Content-Type', 'text/css');
-            } else if (less_match.test(contentType)) {
+            if (less_match.test(contentType)) {
                 type = TYPE_LESS;
                 res.setHeader('Content-Type', 'text/css');
             } else if (stylus_match.test(contentType)) {
